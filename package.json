@@ -1,0 +1,33 @@
+{
+  "name": "terraform-s3-nuke",
+  "version": "1.0.0",
+  "description": "Destroys an AWS Terraform deployment from an S3 state file",
+  "main": "index.js",
+  "bin": {
+    "terraform-s3-nuke": "index.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jkehres/terraform-s3-nuke.git"
+  },
+  "keywords": [
+    "terraform",
+    "s3",
+    "destroy",
+    "aws"
+  ],
+  "author": "Jeff Kehres",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jkehres/terraform-s3-nuke/issues"
+  },
+  "homepage": "https://github.com/jkehres/terraform-s3-nuke#readme",
+  "dependencies": {
+    "aws-sdk": "^2.630.0",
+    "rimraf": "^3.0.2",
+    "yargs": "^13.2.2"
+  }
+}
