@@ -2,6 +2,7 @@
 
 'use strict';
 
+const process = require('process');
 const rimraf = require('rimraf');
 const child_process = require('child_process');
 const fs = require('fs');
@@ -68,7 +69,14 @@ const argv = require('yargs')
 	})
 
 	.strict()
-	.argv;
+
+	// not strictly necessary but makes testing easier
+	.fail((msg, err, yargs) => {
+		console.log(yargs.help());
+		console.log(msg);
+		process.exit(1);
+	})
+	.parse(process.argv);
 
 // apply profile to all subsequent commands - must do this before loading AWS SDK
 if (argv.profile) {
@@ -108,7 +116,7 @@ async function main() {
 				ContinuationToken: continuationToken
 			}).promise();
 			result.Contents.map(obj => obj.Key).filter(matchPatterns).forEach(k => keys.push(k));
-			continuationToken = result.ContinuationToken;
+			continuationToken = result.NextContinuationToken;
 		} while (continuationToken);
 	}
 
@@ -120,26 +128,25 @@ async function main() {
 		}
 
 		const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'terraform-s3-nuke-'));
-		process.chdir(tempDir);
-
-		fs.writeFileSync('main.tf.json', JSON.stringify({
-			provider: {
-				aws: {
-					region: argv.region
-				}
-			},
-			terraform: {
-				backend: {
-					s3: {
-						region: argv.region,
-						bucket: argv.bucket,
-						key
+		try {
+			process.chdir(tempDir);
+			fs.writeFileSync('main.tf.json', JSON.stringify({
+				provider: {
+					aws: {
+						region: argv.region
+					}
+				},
+				terraform: {
+					backend: {
+						s3: {
+							region: argv.region,
+							bucket: argv.bucket,
+							key
+						}
 					}
 				}
-			}
-		}));
+			}));
 
-		try {
 			exec('terraform init');
 
 			if (argv['dry-run']) {
@@ -166,4 +173,7 @@ async function main() {
 	}
 }
 
-main().catch(console.error);
+module.exports = main().catch(err => {
+	console.error(err);
+	process.exitCode = 1;
+});
